@@ -27,6 +27,7 @@ The third controller will look like a Generic HMD inside SteamVR. Because its po
 
 ## How to create mixed reality videos?
 
-Because this controller cannot currently be moved, it means that the position of your camera must be entered into the position and rotation of externalcamera.cfg.
+There are two approaches:
 
-I'm currently working on a tool that will allow you to find the position and rotation of a physical camera.
+* Use the virtual controller as your first controller, attach one of you Vive controllers to your physical camera. This means you can only use one controller in you game, but allows the camera to be moved while recording and is the easiest to setup.
+* Use the virtual controller as the third controller. This allows you to use both Vive controllers while recording. Because this virtual controller cannot currently be moved, it means that the position and rotation of your camera must be entered into externalcamera.cfg. I'm currently working on a tool that will allow you to find the position and rotation of a physical camera.
