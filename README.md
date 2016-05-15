@@ -19,7 +19,11 @@ Example full path to dll:
 
 * Start/Restart SteamVR.
 
-After a few seconds you should see a third controller appear. The third controller will look like a Generic HMD inside SteamVR. Because its position is hardcoded to (0, 0, 0) and cannot be changed it will appear exactly where a lighthouse is (if used with a Vive).
+After a few seconds you should see a third controller appear like so:
+
+![capture](https://cloud.githubusercontent.com/assets/892178/15272260/c3f7dce0-1a25-11e6-835c-c46dcef514b8.PNG)
+
+The third controller will look like a Generic HMD inside SteamVR. Because its position is hardcoded to (0, 0, 0) and cannot be changed it will appear exactly where a lighthouse is (if used with a Vive).
 
 ## How to create mixed reality videos?
 
