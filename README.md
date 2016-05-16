@@ -2,6 +2,8 @@
 
 Virtual Controller Driver simulates a single OpenVR controller.
 
+# For detailed instructions on how to use this to create mixed reality videos with two controllers read http://secondreality.co.uk/blog/how-to-create-mixed-reality-videos-for-the-vive-with-two-controllers/
+
 ## Why?
 
 This allows you to create mixed reality videos with only two controllers.
@@ -31,3 +33,5 @@ There are two approaches:
 
 * Use the virtual controller as your first controller, attach one of you Vive controllers to your physical camera. This means you can only use one controller in you game, but allows the camera to be moved while recording and is the easiest to setup.
 * Use the virtual controller as the third controller. This allows you to use both Vive controllers while recording. Because this virtual controller cannot currently be moved, it means that the position and rotation of your camera must be entered into externalcamera.cfg. I'm currently working on a tool that will allow you to find the position and rotation of a physical camera.
+
+Read http://secondreality.co.uk/blog/how-to-create-mixed-reality-videos-for-the-vive-with-two-controllers/ for more detailed instructions.
