@@ -1,3 +1,5 @@
+*For detailed instructions on how to use this to create mixed reality videos with two controllers read http://secondreality.co.uk/blog/how-to-create-mixed-reality-videos-for-the-vive-with-two-controllers/*
+
 #Virtual Controller Driver#
 
 Virtual Controller Driver simulates a single OpenVR controller.
@@ -19,10 +21,17 @@ Example full path to dll:
 
 * Start/Restart SteamVR.
 
-After a few seconds you should see a third controller appear. The third controller will look like a Generic HMD inside SteamVR. Because its position is hardcoded to (0, 0, 0) and cannot be changed it will appear exactly where a lighthouse is (if used with a Vive).
+After a few seconds you should see a third controller appear like so:
+
+![capture](https://cloud.githubusercontent.com/assets/892178/15272260/c3f7dce0-1a25-11e6-835c-c46dcef514b8.PNG)
+
+The third controller will look like a Generic HMD inside SteamVR. Because its position is hardcoded to (0, 0, 0) and cannot be changed it will appear exactly where a lighthouse is (if used with a Vive).
 
 ## How to create mixed reality videos?
 
-Because this controller cannot currently be moved, it means that the position of your camera must be entered into the position and rotation of externalcamera.cfg.
+There are two approaches:
 
-I'm currently working on a tool that will allow you to find the position and rotation of a physical camera.
+* Use the virtual controller as your first controller, attach one of your Vive controllers to your physical camera. This means you can only use one controller in you game, but allows the camera to be moved while recording and is the easiest to setup.
+* Use the virtual controller as the third controller. This allows you to use both Vive controllers while recording. Because this virtual controller cannot currently be moved, it means that the position and rotation of your camera must be entered into externalcamera.cfg. I'm currently working on a tool that will allow you to find the position and rotation of a physical camera.
+
+*For detailed instructions on how to use this to create mixed reality videos with two controllers read http://secondreality.co.uk/blog/how-to-create-mixed-reality-videos-for-the-vive-with-two-controllers/*
