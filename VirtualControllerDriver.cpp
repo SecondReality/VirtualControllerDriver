@@ -1,8 +1,9 @@
+#include "Communication.h"
 #include <openvr_driver.h>
 #include "driverlog.h"
+#include "CSampleDeviceDriver.h"
 
-#include <vector>
-#include <sstream>
+#include <windows.h>
 
 using namespace vr;
 
@@ -15,16 +16,6 @@ using namespace vr;
 #else
 #error "Unsupported Platform."
 #endif
-
-inline HmdQuaternion_t HmdQuaternion_Init( double w, double x, double y, double z )
-{
-	HmdQuaternion_t quat;
-	quat.w = w;
-	quat.x = x;
-	quat.y = y;
-	quat.z = z;
-	return quat;
-}
 
 // keys for use with the settings API
 static const char * const k_pch_Sample_Section = "driver_virtualcontroller";
@@ -101,260 +92,6 @@ HiddenAreaMesh_t CClientDriver_Sample::GetHiddenAreaMesh( EVREye eEye )
 }
 
 
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-class CSampleDeviceDriver : public vr::ITrackedDeviceServerDriver, public vr::IVRControllerComponent
-{
-public:
-
-	static const vr::EVRButtonId k_EButton_Button1 = (vr::EVRButtonId) 7;
-	static const vr::EVRButtonId k_EButton_Button2 = (vr::EVRButtonId) 8;
-	static const vr::EVRButtonId k_EButton_Button3 = (vr::EVRButtonId) 9;
-	static const vr::EVRButtonId k_EButton_Button4 = vr::k_EButton_ApplicationMenu;
-	static const vr::EVRButtonId k_EButton_Bumper = vr::k_EButton_Grip; // Just for demo compatibility
-
-	CSampleDeviceDriver( vr::IServerDriverHost *pDriverHost )
-		: m_pServerDriverHost( pDriverHost )
-		, m_unObjectId( vr::k_unTrackedDeviceIndexInvalid )
-	{
-	}
-
-	virtual ~CSampleDeviceDriver()
-	{
-		m_pServerDriverHost = NULL;
-	}
-	
-	virtual EVRInitError Activate( uint32_t unObjectId ) 
-	{
-		m_unObjectId = unObjectId;
-		return VRInitError_None;
-	}
-
-	virtual void Deactivate() 
-	{
-		m_unObjectId = vr::k_unTrackedDeviceIndexInvalid;
-	}
-
-	void *GetComponent( const char *pchComponentNameAndVersion )
-	{
-		if ( !_stricmp( pchComponentNameAndVersion, vr::IVRDisplayComponent_Version ) )
-		{
-			return (vr::IVRDisplayComponent*)this;
-		}
-
-		return NULL;
-	}
-
-	virtual void DebugRequest( const char *pchRequest, char *pchResponseBuffer, uint32_t unResponseBufferSize ) 
-	{
-		if( unResponseBufferSize >= 1 )
-			pchResponseBuffer[0] = 0;
-	}
-
-	virtual VRControllerState_t GetControllerState()
-	{
-		return vr::VRControllerState_t();
-	}
-
-	virtual bool TriggerHapticPulse(uint32_t unAxisId, uint16_t usPulseDurationMicroseconds)
-	{
-		return false;
-	}
-
-	virtual void PowerOff()
-	{
-	}
-
-	virtual DriverPose_t GetPose() 
-	{
-		DriverPose_t pose = { 0 };
-		pose.poseIsValid = true;
-		pose.result = TrackingResult_Running_OK;
-		pose.deviceIsConnected = true;
-
-		pose.qWorldFromDriverRotation = HmdQuaternion_Init( 1, 0, 0, 0 );
-		pose.qDriverFromHeadRotation = HmdQuaternion_Init( 1, 0, 0, 0 );
-
-		pose.poseTimeOffset = 0.016f;
-
-		pose.vecPosition[0] = 0;
-		pose.vecPosition[1] = 0;
-		pose.vecPosition[2] = 0;
-		
-		pose.qRotation = HmdQuaternion_Init(1, 0, 0, 0);
-		
-		return pose;
-	}
-	
-	// TODO: For some reason this function is called repeatedly over and over again with value 1025
-	virtual bool GetBoolTrackedDeviceProperty( vr::ETrackedDeviceProperty prop, vr::ETrackedPropertyError *pError ) 
-	{
-		*pError = vr::TrackedProp_Success;
-		return false;
-	}
-
-	virtual float GetFloatTrackedDeviceProperty( vr::ETrackedDeviceProperty prop, vr::ETrackedPropertyError *pError ) 
-	{
-		*pError = vr::TrackedProp_ValueNotProvidedByDevice;
-		return 0.0f;
-	}
-
-	int32_t GetInt32TrackedDeviceProperty( vr::ETrackedDeviceProperty prop, vr::ETrackedPropertyError *pError )
-	{
-		int32_t nRetVal = 0;
-		vr::ETrackedPropertyError error = vr::TrackedProp_UnknownProperty;
-		switch (prop)
-		{
-		case vr::Prop_DeviceClass_Int32:
-			nRetVal = vr::TrackedDeviceClass_Controller;
-			error = vr::TrackedProp_Success;
-			break;
-
-		case vr::Prop_Axis0Type_Int32:
-			nRetVal = vr::k_eControllerAxis_Joystick;
-			error = vr::TrackedProp_Success;
-			break;
-
-		case vr::Prop_Axis1Type_Int32:
-			nRetVal = vr::k_eControllerAxis_Trigger;
-			error = vr::TrackedProp_Success;
-			break;
-
-		case vr::Prop_Axis2Type_Int32:
-		case vr::Prop_Axis3Type_Int32:
-		case vr::Prop_Axis4Type_Int32:
-			error = vr::TrackedProp_ValueNotProvidedByDevice;
-			break;
-		}
-
-		*pError = error;
-		return nRetVal;
-	}
-
-	virtual uint64_t GetUint64TrackedDeviceProperty( vr::ETrackedDeviceProperty prop, vr::ETrackedPropertyError *pError ) 
-	{
-		uint64_t ulRetVal = 0;
-		vr::ETrackedPropertyError error = vr::TrackedProp_ValueNotProvidedByDevice;
-
-		switch (prop)
-		{
-		case vr::Prop_CurrentUniverseId_Uint64:
-		case vr::Prop_PreviousUniverseId_Uint64:
-			error = vr::TrackedProp_ValueNotProvidedByDevice;
-			break;
-
-		case vr::Prop_SupportedButtons_Uint64:
-			ulRetVal =
-				vr::ButtonMaskFromId(vr::k_EButton_System) |
-				vr::ButtonMaskFromId(vr::k_EButton_Axis0) |
-				vr::ButtonMaskFromId(vr::k_EButton_Axis1) |
-				vr::ButtonMaskFromId(k_EButton_Button1) |
-				vr::ButtonMaskFromId(k_EButton_Button2) |
-				vr::ButtonMaskFromId(k_EButton_Button3) |
-				vr::ButtonMaskFromId(k_EButton_Button4) |
-				vr::ButtonMaskFromId(k_EButton_Bumper);
-			error = vr::TrackedProp_Success;
-			break;
-
-		case vr::Prop_HardwareRevision_Uint64:
-			ulRetVal = 1;
-			error = vr::TrackedProp_Success;
-			break;
-
-		case vr::Prop_FirmwareVersion_Uint64:
-			ulRetVal = 1;
-			error = vr::TrackedProp_Success;
-			break;
-
-		}
-
-		*pError = error;
-		return ulRetVal;
-	}
-
-	vr::HmdMatrix34_t GetMatrix34TrackedDeviceProperty( vr::ETrackedDeviceProperty prop, vr::ETrackedPropertyError *pError ) 
-	{
-		return vr::HmdMatrix34_t();
-	}
-
-	virtual uint32_t GetStringTrackedDeviceProperty( vr::ETrackedDeviceProperty prop, char *pchValue, uint32_t unBufferSize, vr::ETrackedPropertyError *pError ) 
-	{
-		std::ostringstream ssRetVal;
-
-		switch (prop)
-		{
-		case vr::Prop_SerialNumber_String:
-			ssRetVal << "123456";
-			break;
-
-		case vr::Prop_RenderModelName_String:
-			ssRetVal << "generic_hmd";
-			break;
-
-		case vr::Prop_ManufacturerName_String:
-			ssRetVal << "Second Reality";
-			break;
-
-		case vr::Prop_ModelNumber_String:
-			ssRetVal << "Virtual Controller Device";
-			break;
-
-		case vr::Prop_TrackingFirmwareVersion_String:
-			ssRetVal << "cd.firmware_revision=" << 1;
-			break;
-
-		case vr::Prop_HardwareRevision_String:
-			ssRetVal << "cd.hardware_revision=" << 1;
-			break;
-		}
-
-		std::string sRetVal = ssRetVal.str();
-		if (sRetVal.empty())
-		{
-			*pError = vr::TrackedProp_ValueNotProvidedByDevice;
-			return 0;
-		}
-		else if (sRetVal.size() + 1 > unBufferSize)
-		{
-			*pError = vr::TrackedProp_BufferTooSmall;
-			return sRetVal.size() + 1;  // caller needs to know how to size buffer
-		}
-		else
-		{
-			_snprintf(pchValue, unBufferSize, sRetVal.c_str());
-			*pError = vr::TrackedProp_Success;
-			return sRetVal.size() + 1;
-		}
-	}
-
-	void RunFrame()
-	{
-		// In a real driver, this should happen from some pose tracking thread.
-		// The RunFrame interval is unspecified and can be very irregular if some other
-		// driver blocks it for some periodic task.
-		if ( m_unObjectId != vr::k_unTrackedDeviceIndexInvalid )
-		{
-			m_pServerDriverHost->TrackedDevicePoseUpdated( m_unObjectId, GetPose() );
-		}
-	}
-
-private:
-	vr::IServerDriverHost *m_pServerDriverHost;
-	uint32_t m_unObjectId;
-
-	std::string m_sSerialNumber;
-	std::string m_sModelNumber;
-
-	int32_t m_nWindowX;
-	int32_t m_nWindowY;
-	int32_t m_nWindowWidth;
-	int32_t m_nWindowHeight;
-	int32_t m_nRenderWidth;
-	int32_t m_nRenderHeight;
-	float m_flSecondsFromVsyncToPhotons;
-	float m_flDisplayFrequency;
-	float m_flIPD;
-};
 
 //-----------------------------------------------------------------------------
 // Purpose:
@@ -363,7 +100,7 @@ class CServerDriver_Sample: public IServerTrackedDeviceProvider
 {
 public:
 	CServerDriver_Sample()
-		: m_pNullHmdLatest( NULL )
+		: cSampleDeviceDriver( NULL )
 		, m_bEnableNullDriver( false ),
 		myHost ( NULL)
 	{
@@ -375,12 +112,16 @@ public:
 	virtual ITrackedDeviceServerDriver *GetTrackedDeviceDriver( uint32_t unWhich, const char *pchInterfaceVersion ) ;
 	virtual ITrackedDeviceServerDriver* FindTrackedDeviceDriver( const char *pchId, const char *pchInterfaceVersion ) ;
 	virtual void RunFrame() ;
+
+	//void InitialiazeIVRSystem();
+	//int GetOpenVRControllerCount();
+
 	virtual bool ShouldBlockStandbyMode()  { return false; }
 	virtual void EnterStandby()  {}
 	virtual void LeaveStandby()  {}
 
 private:
-	CSampleDeviceDriver *m_pNullHmdLatest;
+	CSampleDeviceDriver *cSampleDeviceDriver;
 	
 	bool m_bEnableNullDriver;
 
@@ -388,6 +129,10 @@ private:
 
 	bool createdController;
 	int frameCount;
+
+	// Used to query the number of controllers connected to the system
+	//vr::IVRSystem *vrSystem;
+	Communication communication;
 };
 
 CServerDriver_Sample g_serverDriverNull;
@@ -401,8 +146,7 @@ EVRInitError CServerDriver_Sample::Init( IDriverLog *pDriverLog, vr::IServerDriv
 
 	m_bEnableNullDriver = true;
 
-	m_pNullHmdLatest = new CSampleDeviceDriver( pDriverHost);
-	
+
 	return VRInitError_None;
 }
 
@@ -413,47 +157,60 @@ void CServerDriver_Sample::Cleanup()
 
 uint32_t CServerDriver_Sample::GetTrackedDeviceCount()
 {
-	// TODO: Make this return the correct number (however doesn't seem to cause issues currently)
+	DriverLog("<VVR> CServerDriver_Sample::GetTrackedDeviceCount");
+
+	if(cSampleDeviceDriver)
+	{
+		DriverLog("<VVR> CServerDriver_Sample::GetTrackedDeviceCount returned 1");
+		return 1;
+	}
 	return 0;
 }
 
 ITrackedDeviceServerDriver *CServerDriver_Sample::GetTrackedDeviceDriver( uint32_t unWhich, const char *pchInterfaceVersion )
 {
+	DriverLog("<VVR> CServerDriver_Sample::GetTrackedDeviceDriver");
 	// don't return anything if that's not the interface version we have
 	if (0 != _stricmp(pchInterfaceVersion, ITrackedDeviceServerDriver_Version))
 	{
 		return NULL;
 	}
 		
-	return m_pNullHmdLatest;
+	DriverLog("<VVR> CServerDriver_Sample::GetTrackedDeviceDriver complete");
+	return cSampleDeviceDriver;
 }
 
 ITrackedDeviceServerDriver* CServerDriver_Sample::FindTrackedDeviceDriver( const char *pchId, const char *pchInterfaceVersion )
 {
+	DriverLog("<VVR> CServerDriver_Sample::FindTrackedDeviceDriver");
+
 	// don't return anything if that's not the interface version we have
 	if (0 != _stricmp(pchInterfaceVersion, ITrackedDeviceServerDriver_Version))
 	{
 		return NULL;
 	}
 
-	return m_pNullHmdLatest;
+	DriverLog("<VVR> CServerDriver_Sample::FindTrackedDeviceDriver complete");
+	return cSampleDeviceDriver;
 }
 
 void CServerDriver_Sample::RunFrame()
 {
-	// Used to be in init:
-	frameCount++;
+	Communication::Message message = communication.GetQueuedMessage();
 
-	if (frameCount > 1000 && !createdController)
+	if(message==Communication::StartController)
 	{
-		createdController = true;
+		cSampleDeviceDriver = new CSampleDeviceDriver(myHost);
 		myHost->TrackedDeviceAdded("Virtual Controller");
+		communication.Clear();
 	}
 
-	if (m_pNullHmdLatest)
+	if (cSampleDeviceDriver)
 	{
-		m_pNullHmdLatest->RunFrame();
+		cSampleDeviceDriver->RunFrame();
 	}
+
+
 }
 
 //-----------------------------------------------------------------------------
