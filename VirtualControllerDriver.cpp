@@ -12,7 +12,7 @@ using namespace vr;
 #define HMD_DLL_IMPORT extern "C" __declspec( dllimport )
 #elif defined(GNUC) || defined(COMPILER_GCC)
 #define HMD_DLL_EXPORT extern "C" __attribute__((visibility("default")))
-#define HMD_DLL_IMPORT extern "C" 
+#define HMD_DLL_IMPORT extern "C"
 #else
 #error "Unsupported Platform."
 #endif
@@ -29,17 +29,17 @@ class CClientDriver_Sample : public IClientTrackedDeviceProvider
 {
 public:
 	CClientDriver_Sample()
-		: m_bEnableNullDriver( true )
-		, m_bInit( false )
+		: m_bEnableNullDriver(true)
+		, m_bInit(false)
 	{
 	}
 
-	virtual EVRInitError Init( vr::IDriverLog *pDriverLog, vr::IClientDriverHost *pDriverHost, const char *pchUserDriverConfigDir, const char *pchDriverInstallDir ) ;
-	virtual void Cleanup() ;
-	virtual bool BIsHmdPresent( const char *pchUserDriverConfigDir ) ;
-	virtual EVRInitError SetDisplayId( const char *pchDisplayId )  { return VRInitError_None; } // Null doesn't care
-	virtual HiddenAreaMesh_t GetHiddenAreaMesh( EVREye eEye ) ;
-	virtual uint32_t GetMCImage( uint32_t *pImgWidth, uint32_t *pImgHeight, uint32_t *pChannels, void *pDataBuffer, uint32_t unBufferLen )  { return uint32_t(); }
+	virtual EVRInitError Init(vr::IDriverLog *pDriverLog, vr::IClientDriverHost *pDriverHost, const char *pchUserDriverConfigDir, const char *pchDriverInstallDir);
+	virtual void Cleanup();
+	virtual bool BIsHmdPresent(const char *pchUserDriverConfigDir);
+	virtual EVRInitError SetDisplayId(const char *pchDisplayId) { return VRInitError_None; } // Null doesn't care
+	virtual HiddenAreaMesh_t GetHiddenAreaMesh(EVREye eEye);
+	virtual uint32_t GetMCImage(uint32_t *pImgWidth, uint32_t *pImgHeight, uint32_t *pChannels, void *pDataBuffer, uint32_t unBufferLen) { return uint32_t(); }
 
 private:
 	vr::IClientDriverHost *m_pClientDriverHost;
@@ -50,22 +50,20 @@ private:
 
 CClientDriver_Sample g_clientDriverNull;
 
-
-EVRInitError CClientDriver_Sample::Init( vr::IDriverLog *pDriverLog, vr::IClientDriverHost *pDriverHost, const char *pchUserDriverConfigDir, const char *pchDriverInstallDir ) 
+EVRInitError CClientDriver_Sample::Init(vr::IDriverLog *pDriverLog, vr::IClientDriverHost *pDriverHost, const char *pchUserDriverConfigDir, const char *pchDriverInstallDir)
 {
 	m_pClientDriverHost = pDriverHost;
-	InitDriverLog( pDriverLog );
+	InitDriverLog(pDriverLog);
 
-	if ( !m_bInit )
+	if (!m_bInit)
 	{
-
-		if ( m_pClientDriverHost )
+		if (m_pClientDriverHost)
 		{
-			IVRSettings *pSettings = m_pClientDriverHost->GetSettings( vr::IVRSettings_Version );
+			IVRSettings *pSettings = m_pClientDriverHost->GetSettings(vr::IVRSettings_Version);
 
-			if ( !m_bEnableNullDriver && pSettings )
+			if (!m_bEnableNullDriver && pSettings)
 			{
-				m_bEnableNullDriver = pSettings->GetBool( k_pch_Sample_Section, k_pch_Sample_EnableSampleDriver_Bool, false );
+				m_bEnableNullDriver = pSettings->GetBool(k_pch_Sample_Section, k_pch_Sample_EnableSampleDriver_Bool, false);
 			}
 		}
 		m_bInit = true;
@@ -74,164 +72,155 @@ EVRInitError CClientDriver_Sample::Init( vr::IDriverLog *pDriverLog, vr::IClient
 	return VRInitError_None;
 }
 
-
-void CClientDriver_Sample::Cleanup() 
+void CClientDriver_Sample::Cleanup()
 {
 	CleanupDriverLog();
 }
 
-
-bool CClientDriver_Sample::BIsHmdPresent( const char *pchUserDriverConfigDir ) 
+bool CClientDriver_Sample::BIsHmdPresent(const char *pchUserDriverConfigDir)
 {
 	return false;
 }
 
-HiddenAreaMesh_t CClientDriver_Sample::GetHiddenAreaMesh( EVREye eEye )
+HiddenAreaMesh_t CClientDriver_Sample::GetHiddenAreaMesh(EVREye eEye)
 {
 	return vr::HiddenAreaMesh_t();
 }
 
-
-
 //-----------------------------------------------------------------------------
-// Purpose:
-//-----------------------------------------------------------------------------
-class CServerDriver_Sample: public IServerTrackedDeviceProvider
+
+class CServerDriver_Sample : public IServerTrackedDeviceProvider
 {
 public:
 	CServerDriver_Sample()
-		: cSampleDeviceDriver( NULL )
-		, m_bEnableNullDriver( false ),
-		myHost ( NULL)
+		: cSampleDeviceDriver(NULL)
+		, m_bEnableNullDriver(false),
+		myHost(NULL)
 	{
 	}
 
-	virtual EVRInitError Init( IDriverLog *pDriverLog, 	vr::IServerDriverHost *pDriverHost, const char *pchUserDriverConfigDir, const char *pchDriverInstallDir ) ;
-	virtual void Cleanup() ;
-	virtual uint32_t GetTrackedDeviceCount() ;
-	virtual ITrackedDeviceServerDriver *GetTrackedDeviceDriver( uint32_t unWhich, const char *pchInterfaceVersion ) ;
-	virtual ITrackedDeviceServerDriver* FindTrackedDeviceDriver( const char *pchId, const char *pchInterfaceVersion ) ;
-	virtual void RunFrame() ;
+	virtual EVRInitError Init(IDriverLog *pDriverLog, vr::IServerDriverHost *pDriverHost, const char *pchUserDriverConfigDir, const char *pchDriverInstallDir);
+	virtual void Cleanup();
+	virtual uint32_t GetTrackedDeviceCount();
+	virtual ITrackedDeviceServerDriver *GetTrackedDeviceDriver(uint32_t unWhich) override;
+	virtual ITrackedDeviceServerDriver* FindTrackedDeviceDriver(const char *pchId) override;
+	virtual void RunFrame();
 
-	//void InitialiazeIVRSystem();
-	//int GetOpenVRControllerCount();
-
-	virtual bool ShouldBlockStandbyMode()  { return false; }
-	virtual void EnterStandby()  {}
-	virtual void LeaveStandby()  {}
+	virtual bool ShouldBlockStandbyMode() { return false; }
+	virtual void EnterStandby() {}
+	virtual void LeaveStandby() {}
 
 private:
 	CSampleDeviceDriver *cSampleDeviceDriver;
-	
+
 	bool m_bEnableNullDriver;
 
 	vr::IServerDriverHost * myHost;
 
-	bool createdController;
-	int frameCount;
+	bool createdController = false;
+	int runFrameCounter = 0;
 
-	// Used to query the number of controllers connected to the system
-	//vr::IVRSystem *vrSystem;
-	Communication communication;
+	virtual const char * const * GetInterfaceVersions() override
+	{
+		return vr::k_InterfaceVersions;
+	}
 };
 
 CServerDriver_Sample g_serverDriverNull;
 
-EVRInitError CServerDriver_Sample::Init( IDriverLog *pDriverLog, vr::IServerDriverHost *pDriverHost, const char *pchUserDriverConfigDir, const char *pchDriverInstallDir ) 
+EVRInitError CServerDriver_Sample::Init(IDriverLog *pDriverLog, vr::IServerDriverHost *pDriverHost, const char *pchUserDriverConfigDir, const char *pchDriverInstallDir)
 {
+	DriverLog("Init called\n");
 	myHost = pDriverHost;
-	InitDriverLog( pDriverLog );
+	InitDriverLog(pDriverLog);
 
-	IVRSettings *pSettings = pDriverHost ? pDriverHost->GetSettings( vr::IVRSettings_Version ) : NULL;
+	IVRSettings *pSettings = pDriverHost ? pDriverHost->GetSettings(vr::IVRSettings_Version) : NULL;
 
 	m_bEnableNullDriver = true;
-
 
 	return VRInitError_None;
 }
 
-void CServerDriver_Sample::Cleanup() 
+void CServerDriver_Sample::Cleanup()
 {
 	CleanupDriverLog();
 }
 
 uint32_t CServerDriver_Sample::GetTrackedDeviceCount()
 {
-	DriverLog("<VVR> CServerDriver_Sample::GetTrackedDeviceCount");
+	DriverLog("GetTrackedDeviceCount\n");
 
-	if(cSampleDeviceDriver)
+	if (cSampleDeviceDriver)
 	{
-		DriverLog("<VVR> CServerDriver_Sample::GetTrackedDeviceCount returned 1");
+		DriverLog("GetTrackedDeviceCount returned 1\n");
 		return 1;
 	}
+
 	return 0;
 }
 
-ITrackedDeviceServerDriver *CServerDriver_Sample::GetTrackedDeviceDriver( uint32_t unWhich, const char *pchInterfaceVersion )
+ITrackedDeviceServerDriver *CServerDriver_Sample::GetTrackedDeviceDriver(uint32_t unWhich)
 {
-	DriverLog("<VVR> CServerDriver_Sample::GetTrackedDeviceDriver");
-	// don't return anything if that's not the interface version we have
-	if (0 != _stricmp(pchInterfaceVersion, ITrackedDeviceServerDriver_Version))
-	{
-		return NULL;
-	}
-		
-	DriverLog("<VVR> CServerDriver_Sample::GetTrackedDeviceDriver complete");
+	DriverLog("GetTrackedDeviceDriver\n");
 	return cSampleDeviceDriver;
 }
 
-ITrackedDeviceServerDriver* CServerDriver_Sample::FindTrackedDeviceDriver( const char *pchId, const char *pchInterfaceVersion )
+ITrackedDeviceServerDriver* CServerDriver_Sample::FindTrackedDeviceDriver(const char *pchId)
 {
-	DriverLog("<VVR> CServerDriver_Sample::FindTrackedDeviceDriver");
-
-	// don't return anything if that's not the interface version we have
-	if (0 != _stricmp(pchInterfaceVersion, ITrackedDeviceServerDriver_Version))
-	{
-		return NULL;
-	}
-
-	DriverLog("<VVR> CServerDriver_Sample::FindTrackedDeviceDriver complete");
+	DriverLog("FindTrackedDeviceDriver\n");
 	return cSampleDeviceDriver;
 }
 
 void CServerDriver_Sample::RunFrame()
 {
-	Communication::Message message = communication.GetQueuedMessage();
+	runFrameCounter++;
 
-	if(message==Communication::StartController)
+	// We wait a number of frames, so that physical devices can be turned on,
+	// before the virtual controller is created.
+	if (runFrameCounter > 2000 && !createdController)
 	{
-		cSampleDeviceDriver = new CSampleDeviceDriver(myHost);
-		myHost->TrackedDeviceAdded("Virtual Controller");
-		communication.Clear();
+		createdController = true;
+
+		DriverLog("Adding virtual device\n");
+
+		if (!cSampleDeviceDriver)
+		{
+			cSampleDeviceDriver = new CSampleDeviceDriver(myHost);
+			myHost->TrackedDeviceAdded("Virtual Controller");
+		}
 	}
 
 	if (cSampleDeviceDriver)
 	{
 		cSampleDeviceDriver->RunFrame();
 	}
-
-
 }
 
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-HMD_DLL_EXPORT void *HmdDriverFactory( const char *pInterfaceName, int *pReturnCode )
+HMD_DLL_EXPORT void *HmdDriverFactory(const char *pInterfaceName, int *pReturnCode)
 {
-	if( 0 == strcmp( IServerTrackedDeviceProvider_Version, pInterfaceName ) )
+	if (0 == strcmp(IServerTrackedDeviceProvider_Version, pInterfaceName))
 	{
 		return &g_serverDriverNull;
 	}
-	
-	
-	if( 0 == strcmp( IClientTrackedDeviceProvider_Version, pInterfaceName ) )
+
+	if (0 == strcmp(IClientTrackedDeviceProvider_Version, pInterfaceName))
 	{
 		return &g_clientDriverNull;
 	}
-	
-	if(pReturnCode)
+
+	if (pReturnCode)
 	{
 		*pReturnCode = VRInitError_Init_InterfaceNotFound;
 	}
 
 	return NULL;
+}
+
+//-----------------------------------------------------------------------------
+
+BOOL WINAPI DllMain(_In_ HINSTANCE hinstDLL, _In_ DWORD     fdwReason, _In_ LPVOID    lpvReserved)
+{
+	DriverLog("Main Called\n");
+
+	return TRUE;
 }

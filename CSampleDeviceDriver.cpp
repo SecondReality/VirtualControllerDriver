@@ -14,10 +14,6 @@ inline HmdQuaternion_t HmdQuaternion_Init(double w, double x, double y, double z
 	return quat;
 }
 
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-
 CSampleDeviceDriver::CSampleDeviceDriver(vr::IServerDriverHost *pDriverHost) : m_pServerDriverHost(pDriverHost)
 , m_unObjectId(vr::k_unTrackedDeviceIndexInvalid)
 {
@@ -30,12 +26,14 @@ CSampleDeviceDriver::~CSampleDeviceDriver()
 
 EVRInitError CSampleDeviceDriver::Activate(uint32_t unObjectId)
 {
+	DriverLog("CSampleDeviceDriver::Activate\n");
 	m_unObjectId = unObjectId;
 	return VRInitError_None;
 }
 
 void CSampleDeviceDriver::Deactivate()
 {
+	DriverLog("CSampleDeviceDriver::Deactivate\n");
 	m_unObjectId = vr::k_unTrackedDeviceIndexInvalid;
 }
 
@@ -67,11 +65,11 @@ bool CSampleDeviceDriver::TriggerHapticPulse(uint32_t unAxisId, uint16_t usPulse
 
 void CSampleDeviceDriver::PowerOff()
 {
+	DriverLog("CSampleDeviceDriver::PowerOff\n");
 }
 
 DriverPose_t CSampleDeviceDriver::GetPose()
 {
-	DriverLog("<VVR> CSampleDeviceDriver::GetPose");
 	DriverPose_t pose = { 0 };
 	pose.poseIsValid = true;
 	pose.result = TrackingResult_Running_OK;
@@ -170,7 +168,6 @@ uint64_t CSampleDeviceDriver::GetUint64TrackedDeviceProperty(vr::ETrackedDeviceP
 		ulRetVal = 1;
 		error = vr::TrackedProp_Success;
 		break;
-
 	}
 
 	*pError = error;
@@ -242,4 +239,3 @@ void CSampleDeviceDriver::RunFrame()
 		m_pServerDriverHost->TrackedDevicePoseUpdated(m_unObjectId, GetPose());
 	}
 }
-
